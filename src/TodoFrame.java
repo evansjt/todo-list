@@ -24,20 +24,25 @@ import java.util.List;
 import java.util.Scanner;
 
 import javax.swing.JCheckBox;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class TodoFrame extends JFrame {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private final JComboBox<String> comboBox = new JComboBox<String>();
 	private final JLabel lblTasks = new JLabel("Tasks");
 	private final JCheckBox chckbxStartstopTime = new JCheckBox("Start/Stop Time");
 	private String currentTask = "";
+	private LinkedList<String> taskList = new LinkedList<String>();
 	public long start = 0;
 	public long end = 0;
+	private final JTextField textField = new JTextField();
+	private final JLabel lblEnterTask = new JLabel("Enter Task:");
+	private final JButton addButton = new JButton("Add Task");
 
 	/**
 	 * Launch the application.
@@ -59,20 +64,26 @@ public class TodoFrame extends JFrame {
 	 * Create the frame.
 	 */
 	public TodoFrame() {
+		textField.setColumns(10);
 		lblTasks.setFont(new Font("Tahoma", Font.PLAIN, 19));
-		LinkedList<String> tasks = this.taskList();
-		while(!tasks.isEmpty()){
-			comboBox.addItem((String) tasks.removeFirst());
+		taskList = this.taskList();
+		int i = 0;
+		while(i < taskList.size()){
+			comboBox.addItem(taskList.get(i));
+			i++;
 		}
 		initGUI();
-		CheckBoxListener listener = new CheckBoxListener();
-		chckbxStartstopTime.addItemListener(listener);
+		CheckBoxListener chkListener = new CheckBoxListener();
+		chckbxStartstopTime.addItemListener(chkListener);
+		
+		AddButtonListener addListener = new AddButtonListener();
+		addButton.addActionListener(addListener);
 	}
 	
 	private void initGUI() {
 		setTitle("TODO List");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 159);
+		setBounds(100, 100, 450, 230);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -80,28 +91,41 @@ public class TodoFrame extends JFrame {
 		gl_contentPane.setHorizontalGroup(
 			gl_contentPane.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_contentPane.createSequentialGroup()
+					.addContainerGap()
 					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addGroup(Alignment.TRAILING, gl_contentPane.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(comboBox, 0, 398, Short.MAX_VALUE))
 						.addGroup(gl_contentPane.createSequentialGroup()
-							.addGap(173)
-							.addComponent(lblTasks, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE))
+							.addGap(7)
+							.addComponent(lblEnterTask)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
+								.addComponent(textField, GroupLayout.PREFERRED_SIZE, 324, GroupLayout.PREFERRED_SIZE)
+								.addComponent(addButton, GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE))
+							.addContainerGap())
 						.addGroup(gl_contentPane.createSequentialGroup()
-							.addGap(142)
-							.addComponent(chckbxStartstopTime)))
-					.addContainerGap())
+							.addComponent(lblTasks, GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED, 221, Short.MAX_VALUE)
+							.addComponent(chckbxStartstopTime)
+							.addContainerGap())
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addComponent(comboBox, 0, 406, Short.MAX_VALUE)
+							.addGap(8))))
 		);
 		gl_contentPane.setVerticalGroup(
-			gl_contentPane.createParallelGroup(Alignment.LEADING)
+			gl_contentPane.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_contentPane.createSequentialGroup()
-					.addGap(6)
-					.addComponent(lblTasks, GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap()
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblEnterTask))
 					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(addButton)
+					.addPreferredGap(ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblTasks, GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE)
+						.addComponent(chckbxStartstopTime))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
-					.addComponent(chckbxStartstopTime)
-					.addContainerGap())
+					.addGap(9))
 		);
 		contentPane.setLayout(gl_contentPane);
 	}
@@ -142,7 +166,7 @@ public class TodoFrame extends JFrame {
 					lines.set(i, newLine);
 				}
 			}
-			Files.write(path, lines, StandardCharsets.UTF_8);			
+			Files.write(path, lines, StandardCharsets.UTF_8);	
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -160,6 +184,8 @@ public class TodoFrame extends JFrame {
         out.append((int)(milliTime) % 1000);
         
         addTimeToTaskList(out.toString());
+        taskList.remove(currentTask);
+		comboBox.removeItem(currentTask);
         return out.toString();
     }
 
@@ -174,6 +200,28 @@ public class TodoFrame extends JFrame {
 				end = System.currentTimeMillis();
 				getTime(start, end);
 			}
+		}
+	}
+	
+	private class AddButtonListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(!textField.getText().equals("")){
+				taskList.add(textField.getText());
+				comboBox.addItem(taskList.get(taskList.size()-1));
+				
+				String fileName = "src\\tasks.txt";
+				Path path = Paths.get(fileName);
+				try {
+					List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+					String newLine = textField.getText() + "|";
+					lines.add(newLine);
+					Files.write(path, lines, StandardCharsets.UTF_8);			
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+			textField.setText("");
 		}
 	}
 }

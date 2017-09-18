@@ -1,3 +1,8 @@
-do laundry|0.0.2.736
-feed dog|0.0.4.115
-do homework|0.0.3.530
+find drop-down|0.0.4.435
+write task in field|0.0.1.872
+add task|0.0.1.204
+select task|0.0.0.584
+check box|0.0.0.894
+uncheck box|0.0.0.406
+exit program|0.0.0.406
+do stuff|0.0.0.891
